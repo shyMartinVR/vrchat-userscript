@@ -1,7 +1,8 @@
 import { User, UserTag } from "../types/User";
-import { users } from "./data";
+import { friends, users } from "./data";
 import { waitForElement } from "./global";
 import { CustomProxy } from "./proxy";
+import { getRank, getRankIndex } from "./trustRankCount";
 
 export default function run(){
 
@@ -19,12 +20,15 @@ window.addEventListener("pathchange", (event) => {
     const platform = platformNames.get(last_platform) || last_platform;
     container.textContent = `${displayName} - ${platform} - ${date_joined}`;
 
-    container.classList[tags.includes("system_supporter") ? "add" : "remove"](
-      "martin-plusIcon"
-    );
-
     if (developerType !== "none")
       container.textContent += ` - ${developerType}`;
+
+    if (friends.has(user.id)){
+      const friend = friends.get(user.id);
+      if(getRankIndex(friend) > 4)
+        container.textContent += ` - ${getRank(friend)}`;
+    }
+    
 
     const ul = document.createElement("ul");
 

@@ -79,3 +79,14 @@ export type UserTag =
   "system_trust_legend" |
   "system_world_access" |
   LanguageTag ;
+
+export type UserRank = 
+  "Visitor" |
+  "New" |
+  "User" |
+  "Known" |
+  "Trusted" |
+  "Intermediate" |
+  "Advanced" |
+  "Legend" |
+  "Developer" ;

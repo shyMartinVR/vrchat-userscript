@@ -1,5 +1,5 @@
-import { Friend, User } from "../types/User";
-import { friends } from "./data";
+import { Friend, User, UserRank } from "../types/User";
+import { friends, users } from "./data";
 import { waitForElement } from "./global";
 import { CustomProxy } from "./proxy";
 
@@ -7,6 +7,14 @@ export default function run(){
 
 let trustRankContainer: HTMLDivElement;
 const trustRankUl = document.createElement("ul");
+trustRankUl.addEventListener("click", (event) =>{
+  const list = {};
+  Array.from(friends.values())
+    .map(f => ({name:f.displayName, rank:getRankIndex(f)}))
+    .sort(({rank: a},{rank: b}) => b - a)
+    .forEach(({name, rank}) => list[name] = getRankFromIndex(rank));
+  console.table(list);
+});
 
 CustomProxy.Listen<Friend[]>(
   (url) => url.subPath === "auth/user/friends",
@@ -24,6 +32,10 @@ CustomProxy.Listen<Friend[]>(
 function updateTrustList(container: HTMLElement) {
   trustRankUl.replaceChildren();
   const rankCount = {
+    "Developer": 0,
+    "Legend": 0,
+    "Advanced": 0,
+    "Intermediate": 0,
     "Trusted": 0,
     "Known": 0,
     "User": 0,
@@ -45,23 +57,40 @@ function updateTrustList(container: HTMLElement) {
   }
   container.append(trustRankUl);
 }
-
-
 }
 
-export function getRank(user: User) {
-  const tags = new Set(user.tags);
-  // prettier-ignore
-  return (
-    tags.has("admin_moderator")           ? "Developer"   :
-    tags.has("system_trust_legend")       ? "Legend"      :
-    tags.has("system_trust_advanced")     ? "Advanced"    :
-    tags.has("system_trust_intermediate") ? "Intermediate":
+  const ranks : UserRank[] = [
+    "Visitor",
+    "New",
+    "User",
+    "Known",
+    "Trusted",
+    "Intermediate",
+    "Advanced",
+    "Legend",
+    "Developer",
+  ];
 
-    tags.has("system_trust_veteran") ? "Trusted":
-    tags.has("system_trust_trusted") ? "Known"  :
-    tags.has("system_trust_known")   ? "User"   :
-    tags.has("system_trust_basic")   ? "New"    :
-    "Visitor"
+export function getRank(user: User) : UserRank {
+  return getRankFromIndex(getRankIndex(user));
+}
+
+export function getRankFromIndex(index: number) : UserRank {
+  return ranks[index];
+}
+
+export function getRankIndex(user: User) : number {
+  const tags = new Set(user.tags);
+  return (
+    tags.has("admin_moderator")           ? 8 :
+    tags.has("system_trust_legend")       ? 7 :
+    tags.has("system_trust_advanced")     ? 6 :
+    tags.has("system_trust_intermediate") ? 5 :
+
+    tags.has("system_trust_veteran")      ? 4 :
+    tags.has("system_trust_trusted")      ? 3 :
+    tags.has("system_trust_known")        ? 2 :
+    tags.has("system_trust_basic")        ? 1 :
+    0
   );
 }
